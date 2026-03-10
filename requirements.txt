@@ -1,0 +1,7 @@
+# requirements.txt
+# Lista de paquetes necesarios para el proyecto
+pandas
+numpy
+matplotlib
+scikit-learn
+jupyter
