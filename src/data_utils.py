@@ -1,3 +1,4 @@
+
 from pathlib import Path
 import pandas as pd
 
@@ -58,3 +59,36 @@ def load_dataset(data_path="../data/raw", clinical_filename="clinical_data.txt",
     )
 
     return clinical, patients
+
+# Normalización de estructura de los casos individuales
+def standardize_case(df):
+    df = df.copy()
+
+    # Remove index column if present
+    if "Unnamed: 0" in df.columns:
+        df = df.drop(columns=["Unnamed: 0"])
+
+    # Rename columns
+    df = df.rename(columns={
+        "hora": "time",
+        "glucemia": "glucose"
+    })
+
+    df = df[["time", "glucose"]]
+
+    # Step 1: group duplicates
+    df = df.groupby("time", as_index=False)["glucose"].mean()
+
+    # Step 2: convert time to datetime
+    df["time"] = pd.to_datetime(df["time"], format="%H:%M:%S")
+
+    # Step 3: create complete timeline (5 min intervals)
+    full_time = pd.date_range(
+        start=df["time"].min(),
+        end=df["time"].max(),
+        freq="5min"
+    )
+    df = df.set_index("time").reindex(full_time)
+    df = df.rename_axis("time").reset_index()
+
+    return df
